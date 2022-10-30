@@ -1,15 +1,15 @@
-import time
 from datetime import datetime, timedelta
+from time import sleep
 
-from logger import logger
 from api import vacancies_api
 from db import skill_repo, vacancies_repo, repository
+from logger import logger
 from models import DbVacancy
 
 
 def collect_data():
-    date_to = datetime.now()
-    date_from = date_to - timedelta(days=1)
+    date_to = datetime.now()  - timedelta(days=1)
+    date_from = date_to - timedelta(days=2)
     per_page = 10
     page = 0
 
@@ -50,7 +50,14 @@ def collect_data():
 
 
 if __name__ == '__main__':
-    time.sleep(1)
+    sleep(1)
     collect_data()
+
+    skills = skill_repo.rate_skills(datetime(2022, 10, 28), datetime(2022, 10, 30))
+    skills_rate = {s[0]:s[1] for s in skills}
+    skills_rate = sorted(skills_rate.items(), key=lambda x:x[1], reverse=True)
+
+    for k, v in skills_rate:
+        print(f'{k}:{v}')
 
     print('Done!')
