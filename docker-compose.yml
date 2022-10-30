@@ -3,7 +3,7 @@ version: '3.9'
 services:
   hh_stat:
     build: .
-    restart: on-failure
+#    restart: on-failure
     depends_on:
       - db
     env_file:
@@ -12,8 +12,8 @@ services:
     image: postgres:latest
     restart: on-failure
     ports:
-      - 5432:5432
-#    volumes:
-#      - ./data/db:/var/lib/postgresql/data
+      - "5432:5432"
+    #    volumes:
+    #      - ./data/db:/var/lib/postgresql/data
     env_file:
       - .env
