@@ -11,3 +11,8 @@ class ApiVacancy:
                 setattr(self, key, attrs[key])
             if key == 'key_skills':
                 self.skills = [item['name'] for item in attrs[key]]
+
+
+class VacancySearchResult:
+    def __init__(self, attrs: dict):
+        self.items = attrs['items'] if 'items' in attrs else []

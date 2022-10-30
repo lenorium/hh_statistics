@@ -37,15 +37,6 @@ class DbVacancy(Base):
         self.published_at = published_at
         self.skills = skills
 
-    # def __init__(self, attrs: dict):
-    #     super().__init__()
-    #     for key in attrs:
-    #         if key in type(self).__dict__:
-    #             setattr(self, key, attrs[key])
-    #         if
-    #         if key == 'key_skills':
-    #             self.temp_skills = [item['name'] for item in attrs[key]]
-
 
 class Skill(Base):
     __tablename__ = 'skills'
@@ -59,8 +50,3 @@ class Skill(Base):
 
     def __repr__(self):
         return f'Skill <{id(self)}> {self.name} {self.id}'
-
-
-class VacancySearchResult:
-    def __init__(self, attrs: dict):
-        self.items = attrs['items'] if 'items' in attrs else []

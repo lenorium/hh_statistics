@@ -1,11 +1,11 @@
 from datetime import timedelta
+from time import sleep
 
+from utils import telegram_bot
 import config
-import telegram_bot
 from api import vacancies_api
-from db import skill_repo, vacancies_repo, repository
-from logger import logger
-from models import DbVacancy
+from db import db_utils as db
+from utils.logger import logger
 
 
 def collect_data():
@@ -29,7 +29,7 @@ def collect_data():
 
         logger.info('2. Remove vacancies that already exist in the database\n')
         # убираем вакансии, которые уже есть в бд
-        vacancies = filter(lambda v: not repository.get_first(DbVacancy, DbVacancy.external_id == v.id), vacancies)
+        vacancies = filter(lambda v: not db.find_vacancy_by_ext_id(v.id), vacancies)
 
         logger.info('3. Get full description of each vacancy\n')
         vacancies = [vacancies_api.get_vacancy_full(vacancy.id) for vacancy in vacancies]
@@ -41,15 +41,15 @@ def collect_data():
         all_skills = set(item for vacancy in vacancies for item in vacancy.skills)
 
         logger.info('4. Save new skills in database\n')
-        skill_repo.add_all(all_skills)
+        db.create_skills(all_skills)
 
         logger.info('5. Save vacancies in database\n')
-        vacancies_repo.add_all(vacancies)
+        db.create_vacancies(vacancies)
 
 
 def rate_skills():
     date_from, date_to = get_search_period()
-    skills = skill_repo.get_skills_sort_by_rate(date_from, date_to)
+    skills = db.get_skills_sort_by_rate(date_from, date_to)
     return {s[0]: s[1] for s in skills}
 
 
@@ -62,7 +62,7 @@ def get_search_period() -> tuple:
 
 
 if __name__ == '__main__':
-
+    sleep(1)    # временно
     collect_data()
     skills = rate_skills()
 

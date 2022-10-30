@@ -1,11 +1,10 @@
+import config
 from api import api_methods as api
-from api import urls
-from api.models import ApiVacancy
-from models import VacancySearchResult
+from api.models import ApiVacancy, VacancySearchResult
 
 
 def get_vacancies(**params) -> list:
-    response = api.get(urls.VACANCIES, 200, **params)
+    response = api.get(config.SEARCH_URL + '/vacancies', 200, **params)
     result = VacancySearchResult(response)
     vacancies = []
     for item in result.items:
@@ -14,5 +13,5 @@ def get_vacancies(**params) -> list:
 
 
 def get_vacancy_full(id: int) -> ApiVacancy:
-    response = api.get(urls.VACANCY_FULL(id))
+    response = api.get(config.SEARCH_URL + '/vacancies/' + id)
     return ApiVacancy(response)
