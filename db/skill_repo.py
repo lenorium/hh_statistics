@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 from db.db import DbInstance
 from models import Skill, VacancySkill, DbVacancy
@@ -23,13 +23,16 @@ class Vacancy:
     pass
 
 
-def rate_skills(date_from: datetime, date_to: datetime) -> list:
+def get_skills_sort_by_rate(date_from: datetime, date_to: datetime) -> list:
     with session_maker()() as session:
         rate = session.query(Skill.name,
                              func.count(VacancySkill.skill_id)) \
             .join(Skill, Skill.id == VacancySkill.skill_id) \
-            .join(DbVacancy, DbVacancy.id == VacancySkill.vacancy_id)\
+            .join(DbVacancy, DbVacancy.id == VacancySkill.vacancy_id) \
             .filter(DbVacancy.published_at.between(date_from, date_to)) \
-            .group_by(Skill.name).all()
+            .having(func.count(VacancySkill.skill_id) > 1) \
+            .group_by(Skill.name) \
+            .order_by(desc(func.count(VacancySkill.skill_id))) \
+            .all()
 
     return rate

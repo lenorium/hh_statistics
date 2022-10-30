@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
-from time import sleep
+from datetime import timedelta
 
+import config
+import telegram_bot
 from api import vacancies_api
 from db import skill_repo, vacancies_repo, repository
 from logger import logger
@@ -8,28 +9,25 @@ from models import DbVacancy
 
 
 def collect_data():
-    date_to = datetime.now()  - timedelta(days=1)
-    date_from = date_to - timedelta(days=2)
-    per_page = 10
+    date_from, date_to = get_search_period()
     page = 0
 
     while True:
-        logger.info(f'1. Get vacancies list: page {page} per_page {per_page}\n')
-        vacancies = vacancies_api.get_vacancies(text='data engineer or etl or dwh',
-                                                search_field='name',
+        logger.info(f'1. Get vacancies list: page {page} per_page {config.SEARCH_PER_PAGE}\n')
+        vacancies = vacancies_api.get_vacancies(text=config.SEARCH_TEXT,
+                                                search_field=config.SEARCH_FIELD,
                                                 date_from=date_from.isoformat(),
                                                 date_to=date_to.isoformat(),
-                                                per_page=per_page,
+                                                area=config.SEARCH_AREA,  # Россия
+                                                per_page=config.SEARCH_PER_PAGE,
                                                 page=page,
-                                                # page="page",
-                                                order_by='publication_time')
+                                                order_by=config.SEARCH_ORDER_BY)
         if not vacancies:
             break
 
         page += 1
 
         logger.info('2. Remove vacancies that already exist in the database\n')
-
         # убираем вакансии, которые уже есть в бд
         vacancies = filter(lambda v: not repository.get_first(DbVacancy, DbVacancy.external_id == v.id), vacancies)
 
@@ -49,15 +47,25 @@ def collect_data():
         vacancies_repo.add_all(vacancies)
 
 
+def rate_skills():
+    date_from, date_to = get_search_period()
+    skills = skill_repo.get_skills_sort_by_rate(date_from, date_to)
+    return {s[0]: s[1] for s in skills}
+
+
+def get_search_period() -> tuple:
+    time_delta = config.SEARCH_TIME_DELTA
+    date_to = config.SEARCH_DATE_TO
+    date_from = date_to - timedelta(days=time_delta)
+
+    return date_from, date_to
+
+
 if __name__ == '__main__':
-    sleep(1)
+
     collect_data()
+    skills = rate_skills()
 
-    skills = skill_repo.rate_skills(datetime(2022, 10, 28), datetime(2022, 10, 30))
-    skills_rate = {s[0]:s[1] for s in skills}
-    skills_rate = sorted(skills_rate.items(), key=lambda x:x[1], reverse=True)
+    msg = '\n'.join(f'{key}: {value}' for key, value in skills.items())
 
-    for k, v in skills_rate:
-        print(f'{k}:{v}')
-
-    print('Done!')
+    telegram_bot.send_message(msg)
