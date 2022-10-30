@@ -1,9 +1,8 @@
-import os
-
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
 
+import config
 from models import Base
 
 
@@ -14,15 +13,15 @@ class DbInstance:
         if cls._instance is None:
             database = {
                 'drivername': 'postgresql+psycopg2',
-                'host': os.getenv('POSTGRES_HOST'),
-                'port': os.getenv('POSTGRES_PORT'),
-                'username': os.getenv('POSTGRES_USER'),
-                'password': os.getenv('POSTGRES_PASSWORD'),
-                'database': os.getenv('POSTGRES_DB')
+                'host': config.POSTGRES_HOST,
+                'port': config.POSTGRES_PORT,
+                'username': config.POSTGRES_USER,
+                'password': config.POSTGRES_PASSWORD,
+                'database': config.POSTGRES_DB
             }
 
             cls._instance = super(DbInstance, cls).__new__(cls)
-            cls._instance.engine = create_engine(URL(**database), echo=bool(os.getenv('POSTGRES_LOG')))
+            cls._instance.engine = create_engine(URL(**database), echo=config.POSTGRES_LOG)
             cls._instance.session_maker = sessionmaker(bind=cls._instance.engine)
             Base.metadata.create_all(cls._instance.engine)
         return cls._instance

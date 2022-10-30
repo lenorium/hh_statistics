@@ -1,8 +1,6 @@
 import time
 from datetime import datetime, timedelta
 
-from dotenv import load_dotenv
-
 from api import vacancies_api
 from db import skill_repo, vacancies_repo, repository
 from models import DbVacancy
@@ -21,6 +19,7 @@ def collect_data():
                                                 date_to=date_to.isoformat(),
                                                 per_page=per_page,
                                                 page=page,
+                                                # page="page",
                                                 order_by='publication_time')
         if not vacancies:
             break
@@ -42,10 +41,7 @@ def collect_data():
 
 
 if __name__ == '__main__':
-    load_dotenv()
-
     time.sleep(1)
     collect_data()
-
 
     print('Done!')
