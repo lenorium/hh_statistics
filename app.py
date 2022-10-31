@@ -1,5 +1,6 @@
 import time
 from datetime import timedelta
+
 import schedule
 
 import config
@@ -76,9 +77,9 @@ def job():
 
 
 if __name__ == '__main__':
-    # schedule.every(config.SEARCH_TIME_DELTA).days.at('10:00').do(job)
-    schedule.every(10).minutes.do(job)
+    logger.info('Start scheduler')
+    schedule.every(config.SEARCH_TIME_DELTA).days.at('10:00').do(job)
 
     while True:
         schedule.run_pending()
-        time.sleep(1)
+        time.sleep(60 * 25)  # heroku останавливает приложение через 30 минут неактивности
