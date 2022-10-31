@@ -1,10 +1,11 @@
+import time
 from datetime import timedelta
-from time import sleep
+import schedule
 
-from utils import telegram_bot
 import config
 from api import vacancies_api
 from db import db_utils as db
+from utils import telegram_bot
 from utils.logger import logger
 
 
@@ -23,6 +24,7 @@ def collect_data():
                                                 page=page,
                                                 order_by=config.SEARCH_ORDER_BY)
         if not vacancies:
+            logger.info(f'2. All vacancies are saved. Exit\n')
             break
 
         page += 1
@@ -61,11 +63,22 @@ def get_search_period() -> tuple:
     return date_from, date_to
 
 
-if __name__ == '__main__':
-    sleep(1)    # временно
+def create_message(skills: dict) -> str:
+    return '\n'.join(f'{key}: {value}' for key, value in skills.items())
+
+
+def job():
     collect_data()
     skills = rate_skills()
 
-    msg = '\n'.join(f'{key}: {value}' for key, value in skills.items())
-
+    msg = create_message(skills)
     telegram_bot.send_message(msg)
+
+
+if __name__ == '__main__':
+    # schedule.every(config.SEARCH_TIME_DELTA).days.at('10:00').do(job)
+    schedule.every(10).minutes.do(job)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

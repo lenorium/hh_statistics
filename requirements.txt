@@ -2,3 +2,4 @@ requests
 sqlalchemy==1.4.40
 psycopg2
 python-dotenv
+schedule
