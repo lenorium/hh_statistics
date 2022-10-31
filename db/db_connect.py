@@ -30,7 +30,7 @@ class DbConnection:
                 connect_url = URL(**database)
 
             cls._instance.engine = create_engine(connect_url,
-                                                 sslmode='require',  # для heroku
+                                                 connect_args={'sslmode': 'require'},  # для heroku
                                                  echo=config.POSTGRES_LOG)
             cls._instance.session_maker = sessionmaker(bind=cls._instance.engine)
             Base.metadata.create_all(cls._instance.engine)
